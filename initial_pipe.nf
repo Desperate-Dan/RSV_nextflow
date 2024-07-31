@@ -1,6 +1,13 @@
-inFiles_ch = Channel.fromFilePairs('./reads/*{R1,R2}*fastq.gz')
+inFiles_ch = Channel.fromFilePairs("${params.fastq}*{R1,R2}*fastq.gz")
 inPrimers_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSV_primers_rev.fasta')
-inRef_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSVA.reference.fasta')
+//For the moment, the easiest way to deal with the choice of RSV A or B ref is to require a specific flag. Could move this to conditional on reads themselves in the future.
+if (params.subtype == "RSVA") {
+    inRef_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSVA.reference.fasta')
+} else if(params.subtype == "RSVB") {
+    inRef_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSVB.reference.fasta')
+} else {
+    throw new IllegalArgumentException('Please choose --subtype="RSVA" or "RSVB"')
+}
 
 process trimPrimers {
     publishDir "results/${sample_ID}/trimmed_reads_1", pattern: "*.trimmed.fq" // Can use a pattern match with {} to match multiple things eg *.{bam,bai}
