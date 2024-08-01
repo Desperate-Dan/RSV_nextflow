@@ -1,5 +1,5 @@
 process ampliClean {
-  container "${params.wf.container}@${params.wf.container_sha}"
+  container "${params.wf.nanopore_container}@${params.wf.nanopore_container_sha}"
   
   publishDir path: "${params.out_dir}/${barcode}/ampli_clean", mode: 'copy'
 
@@ -22,7 +22,7 @@ process ampliClean {
 }
 
 process articMinion {
-  container "${params.wf.container}@${params.wf.container_sha}"
+  container "${params.wf.nanopore_container}@${params.wf.nanopore_container_sha}"
 
   publishDir path: "${params.out_dir}/${barcode}/artic", mode: 'copy'
 

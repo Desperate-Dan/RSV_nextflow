@@ -1,0 +1,10 @@
+name: artic_rsv_illumina
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - ivar
+  - bbmap
+  - samtools
+  - bwa

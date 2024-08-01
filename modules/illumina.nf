@@ -1,4 +1,5 @@
 process trimPrimers {
+    container "${params.wf.illumina_container}@${params.wf.illumina_container_sha}"
     publishDir "results/${sample_ID}/trimmed_reads_1", pattern: "*.trimmed.fq" // Can use a pattern match with {} to match multiple things eg *.{bam,bai}
 
     debug true
@@ -17,6 +18,7 @@ process trimPrimers {
 }
 
 process mapReads {
+    container "${params.wf.illumina_container}@${params.wf.illumina_container_sha}"
     publishDir "results/${sample_ID}/mapped_reads_2", pattern: "*.sorted.bam"
     
     debug true
@@ -36,6 +38,7 @@ process mapReads {
 }
 
 process makeConsensus {
+    container "${params.wf.illumina_container}@${params.wf.illumina_container_sha}"
     publishDir "results/consensus_sequences", pattern: "*consensus.fa"
 
     debug true
