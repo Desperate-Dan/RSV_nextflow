@@ -1,65 +1,33 @@
-process ampliClean {
-  container "${params.wf.container}@${params.wf.container_sha}"
-  
-  publishDir path: "${params.out_dir}/${barcode}/ampli_clean", mode: 'copy'
+#!/usr/bin/env nextflow
 
-  input:
-    tuple val(barcode), path(binned_reads)
-    path refs
-    path bed
-    val min
-    val max
-    
-    
-  output:
-    tuple val("${barcode}"), path("${barcode}.*.fastq.gz"), emit: reads, optional: true
-    path "log.txt"
+//Get the modules for each pipeline
+include { trimPrimers; mapReads; makeConsensus } from './modules/illumina.nf'
 
-  script:
-    """
-    ampli_clean -f ${binned_reads} -r ${refs} -o ${barcode} -b ${bed} --min ${min} --max ${max} -s --fastq --log
-    """
-}
 
-process articMinion {
-  container "${params.wf.container}@${params.wf.container_sha}"
 
-  publishDir path: "${params.out_dir}/${barcode}/artic", mode: 'copy'
-
-  input:
-    tuple val(barcode), path(input_reads)
-    path schemes_dir
-    val (medaka_model)
-
-  output:
-    path "${barcode}.${vir}.consensus.fasta"
-
-  script:
-    vir = input_reads.name.toString().tokenize('.').get(1)
-    """
-    artic minion --medaka --threads ${task.cpus} --scheme-directory ${schemes_dir} --read-file ${input_reads} --medaka-model ${medaka_model} --strict ${vir}/V1 ${barcode}.${vir}
-    """
-}
-//These lines for fastq dir parsing are taken from rmcolq's workflow https://github.com/rmcolq/pantheon
-EXTENSIONS = ["fastq", "fastq.gz", "fq", "fq.gz"]
-
-ArrayList get_fq_files_in_dir(Path dir) {
-    return EXTENSIONS.collect { file(dir.resolve("*.$it"), type: "file") } .flatten()
+workflow illumina_wf{
+    //Define the input channels
+    inFiles_ch = Channel.fromFilePairs("${params.fastq}*{R1,R2}*fastq.gz")
+    inPrimers_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSV_primers_rev.fasta')
+    //For the moment, the easiest way to deal with the choice of RSV A or B ref is to require a specific flag. Could move this to conditional on reads themselves in the future.
+    if (params.subtype == "RSVA") {
+        inRef_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSVA.reference.fasta')
+    } else if(params.subtype == "RSVB") {
+        inRef_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSVB.reference.fasta')
+    } else {
+        throw new IllegalArgumentException('Please choose --subtype="RSVA" or "RSVB"')
+    }
+    //inFiles_ch.view()
+    //Work on the input files
+    trimmed_ch = trimPrimers(inFiles_ch, inPrimers_ch)
+    //trimmed_ch.view()
+    //Before mapping for the first time bwa needs some indexes of the ref, need to make sure the pipeline accounts for that, either always index or check "exists" and run.
+    //Not quite so straightforward as they need to be ingested for the pipeline to work - for now ust index immediately before.
+    mapped_ch = mapReads(trimmed_ch, inRef_ch)
+    //mapped_ch.view()
+    makeConsensus(mapped_ch)
 }
 
 workflow {
-//Define input channels  
-  ref_ch = file("${params.refs}")
-  bed_ch = file("${params.bed}")
-  schemes_dir_ch = file("${params.schemes_dir}")
-  min_ch = Channel.value("${params.min}")
-  max_ch = Channel.value("${params.max}")
-  med_mod_ch = Channel.value("${params.medaka_model}")
-//These lines for fastq dir parsing are taken from rmcolq's workflow https://github.com/rmcolq/pantheon
-  run_dir = file("${params.fastq}", type: "dir", checkIfExists:true)
-  barcode_input = Channel.fromPath("${run_dir}/*", type: "dir", checkIfExists:true, maxDepth:1).map { [it.baseName, get_fq_files_in_dir(it)]}
-
-//Run the processes
-  ampliClean(barcode_input, ref_ch, bed_ch, min_ch, max_ch)
-  articMinion(ampliClean.out.reads, schemes_dir_ch, med_mod_ch)
+    illumina_wf()
 }

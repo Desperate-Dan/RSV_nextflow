@@ -1,4 +1,3 @@
-//Untested at the moment!
 include { ampliClean; articMinion } from './modules/nanopore.nf'
 
 //These lines for fastq dir parsing are taken from rmcolq's workflow https://github.com/rmcolq/pantheon
