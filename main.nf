@@ -34,9 +34,9 @@ workflow illumina_wf {
     inPrimers_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSV_primers_rev.fasta')
     //For the moment, the easiest way to deal with the choice of RSV A or B ref is to require a specific flag. Could move this to conditional on reads themselves in the future.
     if (params.subtype == "RSVA") {
-        inRef_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSVA.reference.fasta')
+        inRef_ch = Channel.value("${params.rsva_ref}")
     } else if(params.subtype == "RSVB") {
-        inRef_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSVB.reference.fasta')
+        inRef_ch = Channel.value("${params.rsvb_ref}")
     } else {
         throw new IllegalArgumentException('Please choose --subtype="RSVA" or "RSVB"')
     }

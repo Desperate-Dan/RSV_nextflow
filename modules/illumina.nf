@@ -1,6 +1,6 @@
 process trimPrimers {
     container "${params.wf.illumina_container}@${params.wf.illumina_container_sha}"
-    publishDir "results/${sample_ID}/trimmed_reads_1", pattern: "*.trimmed.fq" // Can use a pattern match with {} to match multiple things eg *.{bam,bai}
+    publishDir "results/${sample_ID}/trimmed_reads_1", pattern: "*.trimmed.fq"
 
     debug true
 
@@ -51,6 +51,6 @@ process makeConsensus {
 
     script:
     """
-    samtools mpileup -aa -A -B -d 0 -Q0 ${sample_ID_mapped} | ivar consensus -t 0.75 -m 10 -n N -p ${sample_ID}.consensus
+    samtools mpileup -aa -A -B -d 0 -Q 0 ${sample_ID_mapped} | ivar consensus -t 0.75 -m 10 -n N -p ${sample_ID}.consensus
     """
 }
