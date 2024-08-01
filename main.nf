@@ -31,7 +31,7 @@ workflow nanopore_wf {
 workflow illumina_wf {
     //Define the input channels
     inFiles_ch = Channel.fromFilePairs("${params.fastq}*{R1,R2}*fastq.gz")
-    inPrimers_ch = Channel.value('/home/dmmalone/RSV_analysis/illumina_nf_testing/resources/RSV_primers_rev.fasta')
+    inPrimers_ch = Channel.value("${params.illumina_bed}")
     //For the moment, the easiest way to deal with the choice of RSV A or B ref is to require a specific flag. Could move this to conditional on reads themselves in the future.
     if (params.subtype == "RSVA") {
         inRef_ch = Channel.value("${params.rsva_ref}")
