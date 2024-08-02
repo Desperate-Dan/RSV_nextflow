@@ -13,7 +13,7 @@ process trimPrimers {
 
     script:
     """
-    bbduk.sh in=${sample_ID_files[0]} in2=${sample_ID_files[1]} out=${sample_ID_files[0]}.trimmed.fq out2=${sample_ID_files[1]}.trimmed.fq ref=${primer_list} ktrimtips=33 k=21 mink=5 hdist=1 rcomp=f
+    bbduk.sh in=${sample_ID_files[0]} in2=${sample_ID_files[1]} out=${sample_ID_files[0]}.trimmed.fq out2=${sample_ID_files[1]}.trimmed.fq ref=${primer_list} ktrimtips=33 k=21 mink=5 hdist=1
     """
 }
 
