@@ -33,8 +33,9 @@ process mapReads {
     script:
     """
     bwa index ${ref_file}
-    bwa mem ${ref_file} ${sample_ID_trimmed} | samtools sort -o ${sample_ID}.sorted.bam
+    bwa mem -k 33 ${ref_file} ${sample_ID_trimmed} | samtools sort -o ${sample_ID}.sorted.bam
     """
+    //Added the -k flag to prevent reads that happen to only map to the primer sites from mapping
 }
 
 process makeConsensus {
@@ -51,6 +52,6 @@ process makeConsensus {
 
     script:
     """
-    samtools mpileup -aa -A -B -d 0 -Q 0 ${sample_ID_mapped} | ivar consensus -t 0.75 -m 10 -n N -p ${sample_ID}.consensus
+    samtools mpileup -aa -A -d 0 -Q 0 ${sample_ID_mapped} | ivar consensus -t 0.75 -m 10 -p ${sample_ID}.consensus
     """
 }
